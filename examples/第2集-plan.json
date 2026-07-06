@@ -1,0 +1,208 @@
+{
+  "title": "病毒科学课 第2讲 — 病毒到底是一种什么生命？",
+  "source": "examples/第2集.srt",
+  "author": "王丽明",
+  "total_slides": 18,
+  "total_duration": "00:12:01",
+  "theme": "cryo-em-scientific",
+  "slides": [
+    {
+      "index": 1,
+      "type": "HOOK",
+      "title": "病毒到底是一种什么生命？",
+      "start": "00:00:06,490",
+      "end": "00:00:10,690",
+      "duration_sec": 4.2,
+      "chapter": null,
+      "layout": "TITLE",
+      "speaker_notes": "开场抓住观众注意力，抛出核心问题"
+    },
+    {
+      "index": 2,
+      "type": "INTRO",
+      "title": "病毒与人类",
+      "start": "00:00:10,690",
+      "end": "00:00:50,390",
+      "duration_sec": 39.7,
+      "chapter": null,
+      "layout": "CONTENT",
+      "speaker_notes": "从人们熟悉的疾病入手，建立病毒与日常生活的关联"
+    },
+    {
+      "index": 3,
+      "type": "CONTENT",
+      "title": "病毒的基本描述",
+      "start": "00:01:05,370",
+      "end": "00:01:46,110",
+      "duration_sec": 40.8,
+      "chapter": null,
+      "layout": "CONTENT",
+      "speaker_notes": "中学课本级别的基础知识回顾"
+    },
+    {
+      "index": 4,
+      "type": "BIG_NUMBER",
+      "title": "三个关键词定义病毒",
+      "start": "00:01:46,110",
+      "end": "00:01:56,670",
+      "duration_sec": 10.6,
+      "chapter": null,
+      "layout": "BIG_WORD",
+      "speaker_notes": "用三句话总结病毒的核心特性"
+    },
+    {
+      "index": 5,
+      "type": "CHAPTER",
+      "title": "第一章：完美寄生者",
+      "start": "00:01:56,670",
+      "end": "00:02:08,470",
+      "duration_sec": 11.8,
+      "chapter": 1,
+      "layout": "CHAPTER",
+      "speaker_notes": "病毒将全部生命活动转交宿主"
+    },
+    {
+      "index": 6,
+      "type": "VS",
+      "title": "寄生虫 vs 病毒",
+      "start": "00:02:08,470",
+      "end": "00:03:33,210",
+      "duration_sec": 84.7,
+      "chapter": 1,
+      "layout": "TABLE",
+      "speaker_notes": "通过对比表格直观展示病毒与寄生虫的本质区别"
+    },
+    {
+      "index": 7,
+      "type": "CONTENT",
+      "title": "病毒的两个生命阶段",
+      "start": "00:03:33,210",
+      "end": "00:04:50,130",
+      "duration_sec": 76.9,
+      "chapter": 1,
+      "layout": "CONTENT",
+      "speaker_notes": "细胞外完全沉寂，细胞内完全活跃"
+    },
+    {
+      "index": 8,
+      "type": "CHAPTER",
+      "title": "第二章：极简主义者",
+      "start": "00:04:50,130",
+      "end": "00:05:14,370",
+      "duration_sec": 24.2,
+      "chapter": 2,
+      "layout": "CHAPTER",
+      "speaker_notes": "完美的寄生能力让病毒有条件发展出极简主义"
+    },
+    {
+      "index": 9,
+      "type": "DATA",
+      "title": "乙肝病毒的极简设计",
+      "start": "00:05:30,510",
+      "end": "00:06:14,610",
+      "duration_sec": 44.1,
+      "chapter": 2,
+      "layout": "DATA",
+      "speaker_notes": "乙肝病毒：3层结构，4个基因，3.2kb基因组"
+    },
+    {
+      "index": 10,
+      "type": "CONTENT",
+      "title": "乙肝病毒的繁殖策略",
+      "start": "00:06:14,610",
+      "end": "00:07:15,890",
+      "duration_sec": 61.3,
+      "chapter": 2,
+      "layout": "CONTENT",
+      "speaker_notes": "4个基因=1份说明书，P/C/S/X四个蛋白质分工明确"
+    },
+    {
+      "index": 11,
+      "type": "CHAPTER",
+      "title": "第三章：规则破坏者",
+      "start": "00:07:15,890",
+      "end": "00:07:35,650",
+      "duration_sec": 19.8,
+      "chapter": 3,
+      "layout": "CHAPTER",
+      "speaker_notes": "病毒发展出与所有其他地球生命完全不同的特性"
+    },
+    {
+      "index": 12,
+      "type": "QUOTE",
+      "title": "生物学家的箴言",
+      "start": "00:07:35,650",
+      "end": "00:07:48,850",
+      "duration_sec": 13.2,
+      "chapter": 3,
+      "layout": "QUOTE",
+      "speaker_notes": "Never say never, and never say forever"
+    },
+    {
+      "index": 13,
+      "type": "CONTENT",
+      "title": "打破能量法则",
+      "start": "00:07:56,370",
+      "end": "00:08:38,770",
+      "duration_sec": 42.4,
+      "chapter": 3,
+      "layout": "CONTENT",
+      "speaker_notes": "病毒无需能量输入维持生存，打破热力学第二定律"
+    },
+    {
+      "index": 14,
+      "type": "CONTENT",
+      "title": "打破中心法则",
+      "start": "00:08:38,770",
+      "end": "00:09:49,550",
+      "duration_sec": 70.8,
+      "chapter": 3,
+      "layout": "CONTENT",
+      "speaker_notes": "DNA→RNA→蛋白质的中心法则在病毒这里彻底失灵"
+    },
+    {
+      "index": 15,
+      "type": "CONTENT",
+      "title": "形态各异的病毒",
+      "start": "00:09:49,550",
+      "end": "00:11:11,630",
+      "duration_sec": 82.1,
+      "chapter": 3,
+      "layout": "CONTENT",
+      "speaker_notes": "病毒外形呈现完美几何形状：球形、正二十面体、机器人形"
+    },
+    {
+      "index": 16,
+      "type": "RECAP",
+      "title": "总结：三大特性",
+      "start": "00:11:11,630",
+      "end": "00:11:51,750",
+      "duration_sec": 40.1,
+      "chapter": null,
+      "layout": "SUMMARY",
+      "speaker_notes": "回顾三大核心要点，为下一讲做铺垫"
+    },
+    {
+      "index": 17,
+      "type": "NEXT",
+      "title": "下一讲：病毒如何让人生病？",
+      "start": "00:11:51,750",
+      "end": "00:12:01,650",
+      "duration_sec": 9.9,
+      "chapter": null,
+      "layout": "SUMMARY",
+      "speaker_notes": "预告下一讲内容"
+    },
+    {
+      "index": 18,
+      "type": "CLOSING",
+      "title": "谢谢 · Q & A",
+      "start": "00:12:01,650",
+      "end": null,
+      "duration_sec": null,
+      "chapter": null,
+      "layout": "CLOSING",
+      "speaker_notes": "结束页"
+    }
+  ]
+}

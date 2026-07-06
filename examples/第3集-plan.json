@@ -1,0 +1,197 @@
+{
+  "title": "病毒科学课 第3讲 — 病毒如何让人生病？",
+  "source": "examples/第3集.srt",
+  "author": "王丽明",
+  "total_slides": 17,
+  "total_duration": "00:12:03",
+  "theme": "cryo-em-scientific",
+  "slides": [
+    {
+      "index": 1,
+      "type": "HOOK",
+      "title": "病毒如何让人生病？",
+      "start": "00:00:06,390",
+      "end": "00:00:50,000",
+      "duration_sec": 43.6,
+      "chapter": null,
+      "layout": "TITLE",
+      "speaker_notes": "开场抛出核心问题：病毒在细胞外像沙子一样不会动，怎么让人生病？回顾上一讲三大特性，引出本讲主题。"
+    },
+    {
+      "index": 2,
+      "type": "INTRO",
+      "title": "本讲概要",
+      "start": "00:00:50,000",
+      "end": "00:01:52,000",
+      "duration_sec": 62.0,
+      "chapter": null,
+      "layout": "CONTENT",
+      "speaker_notes": "介绍本讲三个核心问题：病毒本身是否致病？病毒如何入侵细胞？病毒入侵后如何导致疾病？"
+    },
+    {
+      "index": 3,
+      "type": "CONTENT",
+      "title": "「病毒」≠「病+毒」：非洲猪瘟的启示",
+      "start": "00:01:52,710",
+      "end": "00:02:49,010",
+      "duration_sec": 56.3,
+      "chapter": null,
+      "layout": "CONTENT",
+      "speaker_notes": "病毒的字面理解是错的。病毒由蛋白质+DNA/RNA构成，本身不致病。非洲猪瘟100%杀死猪，但人吃了感染猪肉完全没事——因为病毒无法进入人体细胞。"
+    },
+    {
+      "index": 4,
+      "type": "CHAPTER",
+      "title": "第一章：识别与入侵宿主细胞",
+      "start": "00:02:49,010",
+      "end": "00:03:40,000",
+      "duration_sec": 51.0,
+      "chapter": 1,
+      "layout": "CHAPTER",
+      "speaker_notes": "病毒致病的第一个要素：必须能进入宿主细胞。本章讲解病毒如何识别并入侵特定宿主细胞。"
+    },
+    {
+      "index": 5,
+      "type": "CONTENT",
+      "title": "宿主选择性",
+      "start": "00:02:49,010",
+      "end": "00:03:40,000",
+      "duration_sec": 51.0,
+      "chapter": 1,
+      "layout": "CONTENT",
+      "speaker_notes": "几乎所有地球生命都能被病毒入侵，但特定病毒只入侵特定物种的特定细胞。乙肝病毒→肝脏细胞，艾滋病毒→特定免疫细胞。病毒在细胞外处于绝对静默状态。"
+    },
+    {
+      "index": 6,
+      "type": "CONTENT",
+      "title": "艾滋病毒的入侵机制",
+      "start": "00:03:40,000",
+      "end": "00:05:16,510",
+      "duration_sec": 96.5,
+      "chapter": 1,
+      "layout": "CONTENT",
+      "speaker_notes": "以艾滋病毒为例详解：GP120图钉大头+GP41尖头，结合CD4受体，CCR5辅助拉近，GP41刺破细胞膜，膜融合→病毒内容物进入细胞。全过程被动完成。"
+    },
+    {
+      "index": 7,
+      "type": "CONTENT",
+      "title": "被动入侵的两大特点",
+      "start": "00:05:16,510",
+      "end": "00:06:45,790",
+      "duration_sec": 89.3,
+      "chapter": 1,
+      "layout": "CONTENT",
+      "speaker_notes": "特点一：病毒完全被动，无需主动动作，仅靠蛋白质结合+膜融合等物理过程。特点二：宿主选择性=看结合什么蛋白质——细胞表面有对应受体就能入侵，没有就无法进入。病毒利用宿主必需的蛋白质作为入侵工具，宿主无法轻易放弃这些蛋白质。"
+    },
+    {
+      "index": 8,
+      "type": "VS",
+      "title": "新冠病毒 vs 非洲猪瘟病毒",
+      "start": "00:06:45,790",
+      "end": "00:07:46,830",
+      "duration_sec": 61.0,
+      "chapter": 1,
+      "layout": "TABLE",
+      "speaker_notes": "SARS-CoV-2依靠ACE2受体入侵人体多器官（肺、肾、睾丸），造成多器官病变。非洲猪瘟病毒识别的蛋白质人体根本没有，所以人类不会被感染。"
+    },
+    {
+      "index": 9,
+      "type": "QUOTE",
+      "title": "「病毒没有动机一定要让宿主生病」",
+      "start": "00:07:46,830",
+      "end": "00:08:41,830",
+      "duration_sec": 55.0,
+      "chapter": null,
+      "layout": "QUOTE",
+      "speaker_notes": "病毒唯一使命是自我复制。宿主健康活着持续制造后代才是理想的。每个健康人体内都隐藏着很多病毒，和平相处。但某些病毒过分活跃或免疫系统较弱时，人才会生病。"
+    },
+    {
+      "index": 10,
+      "type": "CHAPTER",
+      "title": "第二章：病毒致病的三大机制",
+      "start": "00:08:41,830",
+      "end": "00:11:20,190",
+      "duration_sec": 158.4,
+      "chapter": 2,
+      "layout": "CHAPTER",
+      "speaker_notes": "病毒进入细胞后，通过三种不同机制导致疾病。本章逐一分析。"
+    },
+    {
+      "index": 11,
+      "type": "CONTENT",
+      "title": "第一类：病毒直接破坏宿主细胞",
+      "start": "00:08:41,830",
+      "end": "00:09:17,450",
+      "duration_sec": 35.6,
+      "chapter": 2,
+      "layout": "CONTENT",
+      "speaker_notes": "腺病毒为例：完成复制后命令宿主细胞启动自杀程序，细胞破碎分解，释放新病毒。短时间内大量细胞被破坏→人生病。"
+    },
+    {
+      "index": 12,
+      "type": "CONTENT",
+      "title": "第二类：宿主细胞过度防御",
+      "start": "00:09:17,450",
+      "end": "00:10:20,990",
+      "duration_sec": 63.5,
+      "chapter": 2,
+      "layout": "CONTENT",
+      "speaker_notes": "艾滋病毒为例：病毒本身不杀伤免疫细胞，但细胞内部监视系统检测到入侵后启动自杀。防御做得过于好——连未被感染的免疫细胞也被清除→免疫系统瘫痪→死于各种病原体感染。"
+    },
+    {
+      "index": 13,
+      "type": "CONTENT",
+      "title": "第三类：免疫系统持续攻击",
+      "start": "00:10:20,990",
+      "end": "00:11:20,190",
+      "duration_sec": 59.2,
+      "chapter": 2,
+      "layout": "CONTENT",
+      "speaker_notes": "乙肝病毒慢性感染→大部分肝脏细胞长期携带病毒→免疫系统持续全面攻击肝脏→肝炎、肝硬化、肝癌。SARS/新冠病毒同理：免疫系统剧烈攻击肺部→呼吸衰竭。"
+    },
+    {
+      "index": 14,
+      "type": "BIG_NUMBER",
+      "title": "三大致病机制",
+      "start": "00:08:41,830",
+      "end": "00:11:20,190",
+      "duration_sec": 158.4,
+      "chapter": 2,
+      "layout": "BIG_WORD",
+      "speaker_notes": "总结三类致病机制的核心：直接破坏、过度防御、免疫攻击。三类机制有时同时发生。"
+    },
+    {
+      "index": 15,
+      "type": "RECAP",
+      "title": "总结",
+      "start": "00:11:20,190",
+      "end": "00:11:54,250",
+      "duration_sec": 34.1,
+      "chapter": null,
+      "layout": "SUMMARY",
+      "speaker_notes": "回顾本讲三大要点：1)病毒本身不致病，必须进入宿主细胞；2)病毒靠表面蛋白结合宿主受体完成被动入侵；3)三类致病机制：直接破坏、过度防御、免疫攻击。"
+    },
+    {
+      "index": 16,
+      "type": "NEXT",
+      "title": "下一讲：病毒如何传播？",
+      "start": "00:11:54,250",
+      "end": "00:12:03,470",
+      "duration_sec": 9.2,
+      "chapter": null,
+      "layout": "SUMMARY",
+      "speaker_notes": "预告下一讲内容：病毒如何传播？为什么病毒会导致那么多可怕的传染病，威胁我们的健康和生命。"
+    },
+    {
+      "index": 17,
+      "type": "CLOSING",
+      "title": "谢谢 · Q & A",
+      "start": "00:12:03,470",
+      "end": null,
+      "duration_sec": null,
+      "chapter": null,
+      "layout": "CLOSING",
+      "speaker_notes": "结束页"
+    }
+  ]
+}

@@ -1,509 +1,528 @@
-import PptxGenJS from "pptxgenjs";
+import pptxgen from "pptxgenjs";
 
-const pptx = new PptxGenJS();
-pptx.layout = "LAYOUT_WIDE"; // 16:9
-pptx.author = "王丽明";
-pptx.title = "病毒科学课 第3集 - 病毒如何导致疾病";
+const pres = new pptxgen();
+pres.layout = "LAYOUT_16x9";
+pres.author = "王丽明";
+pres.title = "病毒科学课 第3讲 — 病毒如何让人生病？";
 
-// ── Color palette ──
-const C = {
-  bgDark:    "1A365D",    // deep navy
-  bgLight:   "EBF4FF",    // light blue
-  accent:    "2B6CB0",    // medium blue
-  accent2:   "C53030",    // red accent
-  accent3:   "276749",    // green accent
-  textDark:  "1A202C",
-  textLight: "FFFFFF",
-  textMuted: "4A5568",
-  white:     "FFFFFF",
+const YT = {
+  dark:       "0B1E2E",
+  darker:     "132D42",
+  accent:     "00A8CC",
+  warm:       "F08C3E",
+  coral:      "E85D5D",
+  purple:     "7B5EA7",
+  white:      "E8ECF0",
+  gray:       "6B8299",
+  lightGray:  "9BB0C2",
+  darkGray:   "1E3A50",
 };
 
-// ── Helper: add a text slide with title + bullet points ──
-function makeSlide(title, bullets, opts = {}) {
-  const slide = pptx.addSlide();
-  slide.background = { color: C.white };
+const TOTAL = 17;
+const FONT = "Microsoft YaHei";
 
-  // Top bar
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 0, y: 0, w: 10, h: 0.08, fill: { color: C.accent },
+// Thin bottom progress bar (cleaner than dots)
+function addProgress(slide, current) {
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: 0.5, y: 5.35, w: 9.0, h: 0.025, fill: { color: YT.darkGray },
   });
-
-  // Title
-  slide.addText(title, {
-    x: 0.6, y: 0.25, w: 8.8, h: 0.7,
-    fontSize: 26, fontFace: "Microsoft YaHei", color: C.textDark,
-    bold: true,
+  const pw = (current / (TOTAL - 1)) * 9.0;
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: 0.5, y: 5.35, w: pw, h: 0.025, fill: { color: YT.accent },
   });
+}
 
-  // Divider line under title
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 0.6, y: 0.95, w: 2.5, h: 0.04, fill: { color: C.accent },
-  });
-
-  // Bullets
-  if (bullets && bullets.length > 0) {
-    const bulletTexts = bullets.map(b => ({
-      text: b,
-      options: {
-        fontSize: opts.bulletSize || 16,
-        fontFace: "Microsoft YaHei",
-        color: C.textDark,
-        bullet: { code: "25CF", color: C.accent },
-        breakType: "none",
-        lineSpacingMultiple: 1.4,
-        spaceAfter: opts.spaceAfter || 6,
-      },
-    }));
-    slide.addText(bulletTexts, {
-      x: 0.6, y: 1.2, w: 8.8, h: 4.8,
-      valign: "top",
-      paraSpaceAfter: 0,
+// Capsid triangles for chapter dividers — the signature element
+function addCapsidPattern(slide) {
+  const triSize = 0.35, triY = 1.0;
+  for (let i = 0; i < 5; i++) {
+    const cx = 1.5 + i * 1.6;
+    slide.addShape(pres.shapes.ISOSCELES_TRIANGLE, {
+      x: cx, y: triY, w: triSize, h: triSize,
+      fill: { color: YT.white, transparency: 85 }, flipV: false,
+    });
+    slide.addShape(pres.shapes.ISOSCELES_TRIANGLE, {
+      x: cx + 0.8, y: triY + 0.3, w: triSize, h: triSize,
+      fill: { color: YT.white, transparency: 90 }, flipV: true,
     });
   }
-
-  // Page number
-  slide.addText(String(slide.slideNumber || ""), {
-    x: 9.2, y: 5.3, w: 0.6, h: 0.4,
-    fontSize: 10, fontFace: "Microsoft YaHei", color: C.textMuted,
-    align: "right",
-  });
-
-  return slide;
 }
 
-// ── Helper: title-only slide (section divider) ──
-function makeSectionSlide(title, subtitle) {
-  const slide = pptx.addSlide();
-  slide.background = { color: C.bgDark };
-
-  slide.addText(title, {
-    x: 0.6, y: 1.5, w: 8.8, h: 1.2,
-    fontSize: 36, fontFace: "Microsoft YaHei", color: C.white,
-    bold: true,
-    align: "center",
+// Left accent strip on content slides
+function leftAccent(slide, color) {
+  slide.addShape(pres.shapes.RECTANGLE, {
+    x: 0, y: 0, w: 0.08, h: 5.63, fill: { color: color || YT.accent },
   });
-  if (subtitle) {
-    slide.addText(subtitle, {
-      x: 1.0, y: 2.8, w: 8.0, h: 0.6,
-      fontSize: 18, fontFace: "Microsoft YaHei", color: "90CDF4",
-      align: "center",
-    });
-  }
-  return slide;
 }
 
-// ── Helper: two-column slide ──
-function makeTwoColSlide(title, leftBullets, rightBullets) {
-  const slide = pptx.addSlide();
-  slide.background = { color: C.white };
-
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 0, y: 0, w: 10, h: 0.08, fill: { color: C.accent },
+// === Slide 1: HOOK ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  // Geometric corner frame
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0.6, y: 0.6, w: 0.06, h: 1.2, fill: { color: YT.accent },
   });
-
-  slide.addText(title, {
-    x: 0.6, y: 0.25, w: 8.8, h: 0.7,
-    fontSize: 24, fontFace: "Microsoft YaHei", color: C.textDark,
-    bold: true,
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0.6, y: 0.6, w: 2.4, h: 0.04, fill: { color: YT.accent },
   });
-
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 0.6, y: 0.95, w: 2, h: 0.04, fill: { color: C.accent },
+  s.addText("病毒如何\n让人生病？", {
+    x: 0.5, y: 1.2, w: 9.0, h: 2.5,
+    fontSize: 46, bold: true, color: YT.white, align: "center",
+    fontFace: FONT, lineSpacing: 56,
   });
-
-  // Left column
-  const leftTexts = leftBullets.map(b => ({
-    text: b,
-    options: {
-      fontSize: 14, fontFace: "Microsoft YaHei", color: C.textDark,
-      bullet: { code: "25CF", color: C.accent },
-      breakType: "none",
-      lineSpacingMultiple: 1.35,
-      spaceAfter: 4,
-    },
-  }));
-  slide.addText(leftTexts, {
-    x: 0.6, y: 1.2, w: 4.1, h: 4.5,
-    valign: "top",
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 3.8, y: 4.0, w: 2.4, h: 0.04, fill: { color: YT.warm },
   });
-
-  // Right column
-  const rightTexts = rightBullets.map(b => ({
-    text: b,
-    options: {
-      fontSize: 14, fontFace: "Microsoft YaHei", color: C.textDark,
-      bullet: { code: "25CF", color: C.accent2 },
-      breakType: "none",
-      lineSpacingMultiple: 1.35,
-      spaceAfter: 4,
-    },
-  }));
-  slide.addText(rightTexts, {
-    x: 5.2, y: 1.2, w: 4.2, h: 4.5,
-    valign: "top",
+  s.addText("王丽明 · 病毒科学课 第3讲", {
+    x: 1.0, y: 4.3, w: 8.0, h: 0.6,
+    fontSize: 15, color: YT.gray, align: "center",
+    fontFace: FONT,
   });
-
-  // Divider line
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 4.95, y: 1.2, w: 0.03, h: 4.2, fill: { color: "CBD5E0" },
-  });
-
-  slide.addText(String(slide.slideNumber || ""), {
-    x: 9.2, y: 5.3, w: 0.6, h: 0.4,
-    fontSize: 10, fontFace: "Microsoft YaHei", color: C.textMuted,
-    align: "right",
-  });
-  return slide;
+  s.addNotes("开场抛出核心问题：病毒在细胞外像沙子一样不会动，它们是怎么跑进我们身体里并且让我们得病的呢？回顾上一讲三大特性（完美寄生者、极简主义者、规则破坏者），引出本讲主题。");
 }
 
-// ── Helper: highlight/emphasis slide ──
-function makeEmphasisSlide(text, subtext) {
-  const slide = pptx.addSlide();
-  slide.background = { color: "FFFFF0" }; // warm yellow-white
-
-  slide.addShape(pptx.ShapeType.rect, {
-    x: 0, y: 0, w: 10, h: 0.08, fill: { color: "D69E2E" },
+// === Slide 2: INTRO ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s);
+  s.addText("本讲概要", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
   });
-
-  slide.addText(text, {
-    x: 0.8, y: 1.5, w: 8.4, h: 1.8,
-    fontSize: 28, fontFace: "Microsoft YaHei", color: C.textDark,
-    bold: true,
-    align: "center",
-    lineSpacingMultiple: 1.3,
+  s.addText([
+    { text: "▸ 病毒本身会致病吗？\n", options: { fontSize: 20, color: YT.white } },
+    { text: "  「病毒」=「病+毒」？字面理解正确吗\n\n", options: { fontSize: 16, color: YT.gray } },
+    { text: "▸ 病毒如何识别和入侵宿主细胞？\n", options: { fontSize: 20, color: YT.white } },
+    { text: "  完全静默的病毒怎样精准找到目标\n\n", options: { fontSize: 16, color: YT.gray } },
+    { text: "▸ 病毒入侵后如何导致疾病？\n", options: { fontSize: 20, color: YT.white } },
+    { text: "  三种截然不同的致病机制", options: { fontSize: 16, color: YT.gray } },
+  ], {
+    x: 1.2, y: 1.5, w: 7.5, h: 3.5,
+    valign: "top", lineSpacing: 30, fontFace: FONT,
   });
-  if (subtext) {
-    slide.addText(subtext, {
-      x: 1.0, y: 3.5, w: 8.0, h: 0.8,
-      fontSize: 16, fontFace: "Microsoft YaHei", color: C.textMuted,
-      align: "center",
-      italic: true,
-    });
-  }
-  return slide;
+  addProgress(s, 1);
+  s.addNotes("介绍本讲三个核心问题。只有搞清楚了病毒怎么进入人体、怎么导致生病，我们才能更好地对抗它。");
 }
 
-// ═══════════════════════════════════════════════
-// SLIDES
-// ═══════════════════════════════════════════════
-
-// 1. Title slide
-(() => {
-  const s = pptx.addSlide();
-  s.background = { color: C.bgDark };
-  s.addText("病毒科学课", {
-    x: 0.8, y: 1.0, w: 8.4, h: 0.8,
-    fontSize: 20, fontFace: "Microsoft YaHei", color: "90CDF4",
-    align: "center",
+// === Slide 3: CONTENT — 「病毒」≠「病+毒」：非洲猪瘟的启示 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.warm);
+  s.addText("「病毒」≠「病+毒」", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
   });
-  s.addText("病毒如何导致疾病？", {
-    x: 0.8, y: 1.8, w: 8.4, h: 1.2,
-    fontSize: 38, fontFace: "Microsoft YaHei", color: C.white,
-    bold: true, align: "center",
+  s.addText([
+    { text: "▸ 病毒的字面理解是错误的\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "病毒 = 蛋白质外壳 + DNA/RNA，本身不致病\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "日常饮食也含蛋白质、DNA、RNA，吃了没事\n\n", options: { fontSize: 16, color: YT.gray } },
+    { text: "▸ 非洲猪瘟的启示\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "对猪：致死率接近 100%，重创中国养殖业\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "对人：吃感染猪肉完全没事，既不病也不毒\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 关键原因：非洲猪瘟病毒不识别人体细胞\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "病毒致病的第一个要素 → 必须能进入宿主细胞", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 28, fontFace: FONT,
   });
-  s.addShape(pptx.ShapeType.rect, {
-    x: 3.5, y: 3.1, w: 3, h: 0.04, fill: { color: C.accent },
+  addProgress(s, 2);
+  s.addNotes("病毒的字面理解是错的。病毒由蛋白质和DNA/RNA构成，这些东西本身不会引起疾病。非洲猪瘟病毒100%杀死猪，但人吃了感染猪肉完全没事——因为病毒无法进入人体细胞。关键：病毒必须先进入宿主细胞才可能致病。");
+}
+
+// === Slide 4: CHAPTER 1 — 识别与入侵宿主细胞 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.purple };
+  addCapsidPattern(s);
+  s.addText("CHAPTER 01", {
+    x: 0.8, y: 2.0, w: 8.4, h: 0.7,
+    fontSize: 18, color: YT.white, fontFace: FONT, charSpacing: 6,
   });
-  s.addText("主讲人：王丽明  |  第3集", {
-    x: 0.8, y: 3.3, w: 8.4, h: 0.6,
-    fontSize: 16, fontFace: "Microsoft YaHei", color: "A0AEC0",
-    align: "center",
+  s.addText("识别与入侵宿主细胞", {
+    x: 0.8, y: 2.7, w: 8.4, h: 1.2,
+    fontSize: 42, bold: true, color: YT.white, fontFace: FONT,
   });
-})();
-
-// 2. Opening & Recap
-makeSlide("上集回顾：病毒是什么？", [
-  "病毒是一类完美的寄生者",
-  "将所有生命活动转交给宿主细胞完成",
-  "自身仅携带无可精简的最小量遗传物质",
-  "能绕过其他地球生命都遵循的细胞规则",
-]);
-
-// 3. Viruses cause many diseases
-makeSlide("病毒与人类疾病", [
-  "从普通感冒、流感，到乙肝、艾滋病",
-  "以及新型冠状病毒肺炎（COVID-19）",
-  "大量人类疾病都与病毒直接相关",
-]);
-
-// 4. Core question
-makeEmphasisSlide(
-  "病毒为什么能让人得病？",
-  "它们在进入细胞之前，不是像沙子一样根本不会动吗？"
-);
-
-// 5. Why this question matters
-makeSlide("为什么要搞清楚这个问题？", [
-  "只有弄清楚病毒如何进入人体、如何导致疾病",
-  "我们才能更好地对抗病毒",
-  "这是本讲要详细讨论的核心问题",
-]);
-
-// 6. Common misconception
-makeSlide("常见误解：「病毒」二字", [
-  "很多人认为：病毒 = 又病又毒，进入人体肯定不好",
-  "字面理解：「病毒」≈ 服毒",
-  "但这种理解是 非常错误的",
-]);
-
-// 7. What is virus really like outside cells?
-makeSlide("进入细胞前，病毒的本质", [
-  "在进入宿主细胞之前，病毒是一种毫无生命迹象的「死东西」",
-  "与一粒沙子没有多大区别",
-  "病毒构造 = 蛋白质外壳 + DNA/RNA 遗传物质",
-  "这些物质本身并不会引起疾病",
-], { bulletSize: 15 });
-
-// 8. Analogy: food
-makeEmphasisSlide(
-  "我们每天吃的肉、菜、蛋、奶里，也有蛋白质、DNA、RNA——吃了一点事都没有。",
-  "病毒本身 ≠ 疾病"
-);
-
-// 9. First condition: must enter host cell
-makeSlide("病毒致病的第一个要素", [
-  "绝大多数情况下，如果病毒不能进入人体细胞",
-  "就算被碰到或吃下肚子，也不会有任何问题",
-  "关键条件：病毒必须进入宿主细胞",
-], { bulletSize: 18 });
-
-// 10. Example: African swine fever
-makeSlide("例证：非洲猪瘟病毒", [
-  "非洲猪瘟对猪的杀伤力极大，死亡率几乎100%",
-  "但感染了非洲猪瘟的猪肉，人吃了完全没关系",
-  "原因：非洲猪瘟病毒只认猪作为宿主",
-  "它不会识别、也不会进入人体细胞",
-  "对人类来说，吃非洲猪瘟病毒 ≈ 吃蛋白质食物",
-], { bulletSize: 15 });
-
-// 11. HIV example transition
-makeSectionSlide("病毒是如何进入宿主细胞的？", "以艾滋病病毒（HIV）为例");
-
-// 12. Host specificity
-makeSlide("宿主选择性", [
-  "几乎所有地球生命都能被一种或多种病毒入侵",
-  "从细菌到真菌，从植物到动物，无一例外",
-  "但大多数病毒只会入侵特定物种的特定细胞",
-  "这就是生物学上的「宿主选择性」",
-], { bulletSize: 16 });
-
-// 13. Specific targeting examples
-makeTwoColSlide("病毒的特异性入侵", [
-  "乙肝病毒 → 识别并入侵肝脏细胞",
-  "艾滋病病毒 → 识别特定免疫细胞",
-  "SARS/新冠病毒 → 识别ACE2阳性细胞",
-], [
-  "关键：病毒表面蛋白质凸起",
-  "在静默状态下帮助病毒寻找合适的宿主细胞",
-  "整个过程病毒自己什么都不需要做",
-]);
-
-// 14. The key insight: passive process
-makeEmphasisSlide(
-  "病毒在识别和入侵过程中，自己什么都不需要干。",
-  "它们没有能力做任何主动动作"
-);
-
-// 15. Virus structure (HIV example)
-makeSlide("艾滋病病毒（HIV）结构", [
-  "外层：薄膜",
-  "中间层：蛋白质外壳",
-  "内部：遗传物质（RNA）",
-  "外层膜上插着「图钉状」蛋白质分子：",
-  "  ● 大头：GP120",
-  "  ● 尖头：GP41",
-], { bulletSize: 16 });
-
-// 16. HIV entry: GP120 + CD4
-makeSlide("HIV入侵第一步：识别与靠近", [
-  "GP120 能够与人体免疫细胞表面的 CD4 蛋白质紧密结合",
-  "像磁铁的南北极天然相互吸引——完全被动完成",
-  "结合后，HIV 靠近了它的天然宿主——人体免疫细胞",
-]);
-
-// 17. HIV entry: membrane fusion
-makeSlide("HIV入侵第二步：进入细胞", [
-  "在 CCR5 蛋白质分子的帮助下，HIV 与免疫细胞彼此拉近",
-  "GP41（图钉尖头）刺破免疫细胞的细胞膜",
-  "HIV 的膜与免疫细胞的膜融合在一起",
-  "就像两个肥皂泡合并成一个更大的肥皂泡",
-  "病毒蛋白质和遗传物质进入细胞内部",
-]);
-
-// 18. Feature 1: passive process
-makeSlide("病毒入侵特点一：完全被动", [
-  "病毒自己不需要做任何事情",
-  "它也没有能力做任何主动动作",
-  "借助纯物理/化学过程：",
-  "  ● 蛋白质分子之间的吸引与结合",
-  "  ● 细胞膜的融合",
-  "病毒就能找到宿主细胞并成功入侵",
-], { bulletSize: 15 });
-
-// 19. Feature 2: host specificity
-makeSlide("病毒入侵特点二：蛋白质锁钥机制", [
-  "病毒的宿主选择性 = 取决于它结合什么蛋白质进入细胞",
-  "病毒是「指哪打哪」：",
-  "  ● 细胞上有它要结合的蛋白质 → 识别并入侵",
-  "  ● 细胞上没有 → 无法进入这个细胞",
-]);
-
-// 20. Clever strategy
-makeSlide("病毒的巧妙生存策略", [
-  "宿主细胞表面的蛋白质分子并非病毒自己发明的",
-  "这些蛋白质本身就是宿主细胞的重要功能元件",
-  "病毒恰恰利用了这些天然存在的蛋白质作为入侵工具",
-  "宿主细胞无法轻易放弃或改变这些重要蛋白质",
-  "因此也无法阻止病毒的识别和入侵",
-], { bulletSize: 16 });
-
-// 21. HIV + CD4 detail
-makeSlide("以 HIV 为例：为什么免疫细胞逃不掉？", [
-  "CD4 蛋白质只在某些免疫细胞表面才有",
-  "CD4 对免疫细胞至关重要：帮助识别病原体并展开攻击",
-  "免疫细胞离不开 CD4 → 就必然受到 HIV 的入侵",
-]);
-
-// 22. SARS/COVID + ACE2
-makeSlide("更多实例：SARS / 新型冠状病毒", [
-  "2002年 SARS 冠状病毒 & 2019年新型冠状病毒",
-  "都依靠病毒表面的「尖刺」结合 ACE2 蛋白质",
-  "ACE2（血管紧张素转换酶二）对维持心血管功能非常重要",
-  "病毒正是利用这个正常功能蛋白质进入细胞",
-], { bulletSize: 16 });
-
-// 23. Multi-organ attack
-makeSlide("为什么新冠病毒会攻击多个器官？", [
-  "人体哪些细胞带有 ACE2 蛋白质，病毒就入侵哪里：",
-  "  ● 肺部某些细胞",
-  "  ● 肾脏某些细胞",
-  "  ● 甚至男性睾丸的某些细胞",
-  "这就是新冠病毒感染后出现多器官病变的原因",
-], { bulletSize: 15 });
-
-// 24. ASF recap
-makeSlide("反向例证：非洲猪瘟病毒", [
-  "非洲猪瘟病毒识别和结合的蛋白质分子",
-  "在人体中根本不存在",
-  "所以人类不会被非洲猪瘟病毒入侵",
-  "也不会因此生病",
-]);
-
-// 25. Entering cell ≠ disease
-makeSectionSlide("进入细胞 = 一定会生病吗？", "不一定。");
-
-// 26. Virus's real mission
-makeSlide("病毒的唯一使命", [
-  "病毒唯一重要的使命：利用宿主细胞的能量和资源自我复制",
-  "它根本不关心宿主细胞本身的状态",
-  "从逻辑上说，宿主细胞健康活着、持续帮助病毒制造后代，才是最理想的",
-  "病毒没有动机让宿主生病，更别说死亡",
-], { bulletSize: 15 });
-
-// 27. Viruses in our body
-makeEmphasisSlide(
-  "每个健康人体内都隐藏着很多病毒。",
-  "很多时候，病毒能和人体细胞和平相处，不会造成伤害。"
-);
-
-// 28. Three categories intro
-makeSlide("病毒致病的三大原因", [
-  "某些病毒过分活跃，或人体免疫系统较弱时",
-  "原本无害的病毒也可能让人生病",
-  "具体原因可以分为三大类：",
-  "  ① 病毒直接破坏宿主细胞",
-  "  ② 宿主细胞过度防御",
-  "  ③ 免疫系统攻击过激",
-], { bulletSize: 16 });
-
-// 29. Category 1: direct destruction
-makeSlide("第一类：病毒直接破坏细胞", [
-  "以腺病毒（引发病毒性肺炎）为例：",
-  "  病毒在细胞内完成复制后，需要离开细胞",
-  "  腺病毒主动命令宿主细胞启动自杀程序",
-  "  细胞破碎分解 → 病毒颗粒被释放出去",
-  "短时间内大量细胞被破坏 → 人生病",
-], { bulletSize: 15 });
-
-// 30. Category 2: over-defense
-makeSlide("第二类：宿主细胞过度防御", [
-  "有时病毒本身不杀伤宿主细胞，但宿主细胞自身的防御导致了疾病",
-  "以 HIV/AIDS 为例：",
-  "  免疫细胞有内部监控系统，发现被入侵就启动自杀",
-  "  这是正常防御——牺牲自己阻止病毒扩散",
-], { bulletSize: 15 });
-
-// 31. Category 2 continued: AIDS
-makeSlide("第二类（续）：艾滋病案例", [
-  "但在艾滋病人体内，防御措施做得「过于好了」",
-  "不仅杀死已被病毒感染的细胞",
-  "连没有被感染的免疫细胞也一并清除",
-  "结果：人体免疫系统彻底瘫痪",
-  "病人暴露在各种病原体之下，死于各种感染",
-], { bulletSize: 15 });
-
-// 32. Category 3: immune overreaction
-makeSlide("第三类：免疫系统攻击过激", [
-  "免疫系统核心任务之一：识别并清除体内病毒",
-  "当大量细胞被病毒感染后，这些细胞也成为免疫系统的攻击目标",
-  "以乙肝为例：",
-  "  大部分肝细胞长期存在乙肝病毒踪迹",
-  "  免疫系统持续全面攻击肝脏",
-  "  最终导致肝炎 → 肝硬化 → 肝癌",
-], { bulletSize: 14 });
-
-// 33. Category 3 continued: COVID
-makeSlide("第三类（续）：SARS / 新冠案例", [
-  "SARS 冠状病毒和新型冠状病毒引发的也是同样的反应",
-  "免疫系统剧烈攻击携带病毒的人体细胞（如肺部细胞）",
-  "短时间内破坏肺部和其他器官的正常功能",
-  "导致发病和死亡",
-], { bulletSize: 15 });
-
-// 34. Summary
-makeSectionSlide("本讲小结", "");
-
-// 35. Summary details
-makeSlide("关键要点总结", [
-  "病毒本身不会导致疾病，必须识别并入侵宿主细胞才会致病",
-  "病毒依靠表面蛋白质分子结合宿主表面的特定蛋白质",
-  "整个识别与入侵过程完全被动完成",
-  "入侵后致病方式有三种：",
-  "  ● 直接杀死宿主细胞",
-  "  ● 宿主细胞过度防御",
-  "  ● 免疫系统攻击过激",
-], { bulletSize: 15 });
-
-// 36. Preview
-makeSlide("下集预告", [
-  "搞清楚了病毒如何导致疾病",
-  "下一讲：病毒是如何传播的？",
-  "为什么病毒会导致那么多可怕的传染病？",
-  "它们如何威胁我们的健康和生命？",
-]);
-
-// 37. End slide
-(() => {
-  const s = pptx.addSlide();
-  s.background = { color: C.bgDark };
-  s.addText("谢谢观看", {
-    x: 0.8, y: 2.0, w: 8.4, h: 1.0,
-    fontSize: 40, fontFace: "Microsoft YaHei", color: C.white,
-    bold: true, align: "center",
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0.8, y: 4.0, w: 2.0, h: 0.04, fill: { color: YT.white },
   });
-  s.addShape(pptx.ShapeType.rect, {
-    x: 4.0, y: 3.1, w: 2, h: 0.04, fill: { color: C.accent },
+  s.addText("⏱ 02:49 – 07:46", {
+    x: 0.8, y: 4.2, w: 8.4, h: 0.5,
+    fontSize: 15, color: YT.white, fontFace: FONT,
   });
-  s.addText("病毒科学课 · 第3集", {
-    x: 0.8, y: 3.3, w: 8.4, h: 0.6,
-    fontSize: 16, fontFace: "Microsoft YaHei", color: "A0AEC0",
-    align: "center",
-  });
-})();
+  s.addNotes("第一章：病毒致病的第一个要素——必须能进入宿主细胞。本章讲解病毒如何依靠表面蛋白质分子被动识别并入侵特定宿主细胞。");
+}
 
-// ═══════════════════════════════════════════════
-// GENERATE
-// ═══════════════════════════════════════════════
-const outPath = "examples/第3集-slides.pptx";
-await pptx.writeFile({ fileName: outPath });
-console.log("Generated:", outPath);
+// === Slide 5: CONTENT — 宿主选择性 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s);
+  s.addText("宿主选择性", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 几乎所有地球生命都能被病毒入侵\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "从细菌到真菌，从植物到动物，都不例外\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 但特定病毒只入侵特定物种的特定细胞\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "乙肝病毒 → 只识别肝脏细胞\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "艾滋病毒 → 只识别某种免疫细胞\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 病毒在细胞外处于绝对静默状态\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "那它们是怎么识别并入侵宿主细胞的？", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 28, fontFace: FONT,
+  });
+  addProgress(s, 4);
+  s.addNotes("宿主选择性是病毒的关键特征。乙肝病毒只入侵肝脏细胞，艾滋病毒只入侵特定免疫细胞。病毒在进入宿主细胞之前毫无生命迹象，处在一种绝对的静默状态。");
+}
+
+// === Slide 6: CONTENT — 艾滋病毒的入侵机制 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.warm);
+  s.addText("艾滋病毒的入侵机制", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 病毒表面：像图钉一样的蛋白质分子\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "大头 GP120 → 识别并结合 CD4 受体\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "尖头 GP41 → 刺破细胞膜，完成融合\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 入侵四步（全程被动）\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "① GP120 结合免疫细胞表面 CD4 蛋白\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "② CCR5 辅助拉近病毒与细胞距离\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "③ GP41 刺破细胞膜\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "④ 病毒膜与细胞膜融合 → 内容物进入", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 28, fontFace: FONT,
+  });
+  addProgress(s, 5);
+  s.addNotes("以艾滋病毒为例详解入侵机制。GP120像图钉大头结合CD4，GP41像尖头刺破细胞膜。整个过程就像磁铁南北极天然相互吸引一样，完全被动完成，不需要病毒做任何事情。");
+}
+
+// === Slide 7: CONTENT — 被动入侵的两大特点 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s);
+  s.addText("被动入侵的两大特点", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 特点一：完全被动，无需主动动作\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "病毒没有能力做任何主动动作\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "仅靠蛋白质吸引结合 + 细胞膜融合等物理过程\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "就能找到宿主细胞并成功入侵\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 特点二：宿主选择性 = 结合什么蛋白质\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "细胞表面有对应受体 → 能识别入侵\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "细胞表面没有对应受体 → 无法进入\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 聪明的策略：利用宿主必需蛋白作为入侵工具\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "宿主无法轻易放弃这些有重要功能的蛋白质", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 26, fontFace: FONT,
+  });
+  addProgress(s, 6);
+  s.addNotes("病毒识别和入侵宿主细胞的两大特点：第一，完全被动，不需要做任何事情；第二，宿主选择性取决于结合什么蛋白质分子。病毒利用宿主必需的蛋白质作为入侵工具——宿主无法放弃这些蛋白质，自然也无法阻止病毒入侵。");
+}
+
+// === Slide 8: VS — 新冠病毒 vs 非洲猪瘟病毒 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s);
+  s.addText("新冠病毒 vs 非洲猪瘟病毒", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 30, bold: true, color: YT.white, fontFace: FONT,
+  });
+
+  const hdr = { bold: true, color: YT.white, fill: { color: YT.purple }, align: "center", fontSize: 15, fontFace: FONT };
+  const left = { bold: true, align: "center", fontSize: 14, fontFace: FONT, color: YT.white };
+  const cell = { align: "center", fontSize: 14, fontFace: FONT, color: YT.lightGray };
+
+  const green = "5DBA8B";
+  const rows = [
+    [
+      { text: "特征", options: hdr },
+      { text: "🦠 新冠病毒", options: hdr },
+      { text: "🐷 非洲猪瘟病毒", options: hdr },
+    ],
+    [
+      { text: "结合受体", options: left },
+      { text: "ACE2 蛋白质", options: { ...cell, color: YT.warm } },
+      { text: "（人体中不存在）", options: { ...cell, color: YT.gray } },
+    ],
+    [
+      { text: "靶向器官", options: left },
+      { text: "肺、肾、睾丸等多器官", options: { ...cell, color: YT.coral } },
+      { text: "仅猪的特定细胞", options: { ...cell, color: YT.gray } },
+    ],
+    [
+      { text: "感染人类", options: left },
+      { text: "✅ 是", options: { ...cell, color: YT.coral } },
+      { text: "❌ 否", options: { ...cell, color: green } },
+    ],
+    [
+      { text: "致病后果", options: left },
+      { text: "多器官严重病变", options: { ...cell, color: YT.coral } },
+      { text: "对人完全无害", options: { ...cell, color: green } },
+    ],
+    [
+      { text: "根本原因", options: left },
+      { text: "人体细胞带有 ACE2", options: { ...cell, color: YT.white } },
+      { text: "人体细胞无对应受体", options: { ...cell, color: YT.white } },
+    ],
+  ];
+
+  s.addTable(rows, {
+    x: 0.8, y: 1.5, w: 8.4,
+    border: { type: "solid", pt: 0.5, color: YT.darkGray },
+    colW: [2.4, 3.0, 3.0],
+    rowH: [0.55, 0.5, 0.5, 0.5, 0.5, 0.5],
+  });
+  addProgress(s, 7);
+  s.addNotes("SARS-CoV-2依靠ACE2受体入侵人体多器官（肺、肾、睾丸），造成多器官病变。非洲猪瘟病毒识别的蛋白质人体根本没有，所以人类不会被感染。病毒都是「指哪打哪」。");
+}
+
+// === Slide 9: QUOTE — 病毒没有动机一定要让宿主生病 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.warm };
+  // Left line accent
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0.8, y: 1.8, w: 0.05, h: 1.8, fill: { color: YT.white, transparency: 50 },
+  });
+  s.addText("「病毒没有动机\n一定要让宿主生病，\n更别说死亡了」", {
+    x: 1.5, y: 1.2, w: 7.5, h: 2.5,
+    fontSize: 28, italic: true, color: YT.white, align: "left",
+    valign: "middle", fontFace: FONT, lineSpacing: 42,
+  });
+  s.addText("—— 每个健康人体内都隐藏着很多病毒", {
+    x: 1.5, y: 3.8, w: 7.5, h: 0.5,
+    fontSize: 15, color: YT.white, align: "right",
+    fontFace: FONT,
+  });
+  s.addNotes("病毒唯一使命是自我复制。宿主细胞健健康康地活着，持续帮助病毒制造后代，才是最理想的。但如果某些病毒过分活跃，或者人体免疫系统比较弱，人就可能会生病。");
+}
+
+// === Slide 10: CHAPTER 2 — 病毒致病的三大机制 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.purple };
+  addCapsidPattern(s);
+  s.addText("CHAPTER 02", {
+    x: 0.8, y: 2.0, w: 8.4, h: 0.7,
+    fontSize: 18, color: YT.white, fontFace: FONT, charSpacing: 6,
+  });
+  s.addText("病毒致病的三大机制", {
+    x: 0.8, y: 2.7, w: 8.4, h: 1.2,
+    fontSize: 42, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0.8, y: 4.0, w: 2.0, h: 0.04, fill: { color: YT.white },
+  });
+  s.addText("⏱ 08:41 – 11:20", {
+    x: 0.8, y: 4.2, w: 8.4, h: 0.5,
+    fontSize: 15, color: YT.white, fontFace: FONT,
+  });
+  s.addNotes("第二章：病毒进入宿主细胞后，通过三种截然不同的机制导致疾病——直接破坏、过度防御、免疫攻击。");
+}
+
+// === Slide 11: CONTENT — 第一类：病毒直接破坏宿主细胞 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.coral);
+  s.addText("第一类：病毒直接破坏宿主细胞", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 28, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 代表：腺病毒（引发病毒性肺炎）\n\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "▸ 机制：\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "病毒在宿主细胞内完成自我复制\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "新病毒颗粒需要离开 → 寻找下一个目标\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 病毒命令宿主细胞启动自杀程序\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 细胞破碎分解 → 释放大量新病毒\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 后果：短时间内大批细胞被破坏 → 人得病\n", options: { bold: true, color: YT.coral, fontSize: 20 } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 28, fontFace: FONT,
+  });
+  addProgress(s, 10);
+  s.addNotes("腺病毒在人体细胞内完成自我复制后，命令宿主细胞启动自杀程序，把自己的破碎分解掉，这样病毒颗粒就可以被释放出去。短时间内入侵和分解大批量的人体细胞，人当然就可能得病。");
+}
+
+// === Slide 12: CONTENT — 第二类：宿主细胞过度防御 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.warm);
+  s.addText("第二类：宿主细胞过度防御", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 28, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 代表：艾滋病毒（HIV）\n\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "▸ 机制：\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "病毒本身不杀伤免疫细胞\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "但细胞内部监视系统检测到入侵 → 启动自杀\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "本是人体防御措施：让感染细胞主动死亡\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 阻止病毒完成复制并入侵其他细胞\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 问题：防御做得「过于好」\n", options: { bold: true, color: YT.coral, fontSize: 20 } },
+    { text: "连未被感染的免疫细胞也被清除\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 免疫系统彻底瘫痪 → 死于各种病原体感染", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 26, fontFace: FONT,
+  });
+  addProgress(s, 11);
+  s.addNotes("有些时候病毒本身不杀伤宿主细胞，反而是宿主细胞自身的防御措施导致了疾病。艾滋病人体内，宿主细胞的防御做得过于好了——不仅杀死被感染的细胞，连健康的免疫细胞也被清除。免疫系统彻底瘫痪。");
+}
+
+// === Slide 13: CONTENT — 第三类：免疫系统持续攻击 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.purple);
+  s.addText("第三类：免疫系统持续攻击", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 28, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "▸ 代表：乙肝病毒 · SARS · 新冠病毒\n\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "▸ 机制：\n", options: { bold: true, color: YT.accent, fontSize: 20 } },
+    { text: "免疫系统被激活 → 寻找并消灭病毒\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "大量细胞已被感染 → 也成了免疫攻击对象\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ 乙肝病毒慢性感染：\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "大部分肝脏细胞长期携带病毒\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 免疫系统持续全面攻击肝脏\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "→ 肝炎 → 肝硬化 → 肝癌\n\n", options: { fontSize: 18, color: YT.lightGray } },
+    { text: "▸ SARS/新冠病毒同理：\n", options: { bold: true, color: YT.warm, fontSize: 20 } },
+    { text: "免疫系统剧烈攻击肺部 → 呼吸衰竭 → 死亡", options: { fontSize: 18, color: YT.lightGray } },
+  ], {
+    x: 1.2, y: 1.3, w: 7.8, h: 4.0,
+    valign: "top", lineSpacing: 26, fontFace: FONT,
+  });
+  addProgress(s, 12);
+  s.addNotes("第三类与人体免疫系统的机制有关。免疫系统持续攻击那些携带病毒的人体细胞。乙肝→肝炎→肝硬化→肝癌的进展链条；SARS和新冠病毒感染引发免疫系统剧烈攻击肺部，导致呼吸衰竭。");
+}
+
+// === Slide 14: BIG_NUMBER — 三大致病机制 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  // Subtle geometric ring
+  s.addShape(pres.shapes.OVAL, {
+    x: 4.1, y: 0.6, w: 1.8, h: 1.8,
+    fill: { color: YT.accent, transparency: 95 },
+    line: { color: YT.accent, width: 1.5, transparency: 70 },
+  });
+  s.addText("3", {
+    x: 1.0, y: 0.7, w: 8.0, h: 1.5,
+    fontSize: 68, bold: true, color: YT.warm, align: "center",
+    fontFace: FONT,
+  });
+  s.addText("大类致病机制", {
+    x: 1.0, y: 2.3, w: 8.0, h: 0.8,
+    fontSize: 28, color: YT.accent, align: "center",
+    fontFace: FONT,
+  });
+  s.addText("直接破坏 · 过度防御 · 免疫攻击", {
+    x: 1.0, y: 3.3, w: 8.0, h: 0.5,
+    fontSize: 18, color: YT.lightGray, align: "center",
+    fontFace: FONT,
+  });
+  s.addText("三类机制可同时发生 · 相互叠加", {
+    x: 1.0, y: 3.9, w: 8.0, h: 0.5,
+    fontSize: 15, color: YT.gray, align: "center",
+    fontFace: FONT,
+  });
+  addProgress(s, 13);
+  s.addNotes("总结三类致病机制的核心。有时三类机制同时发生，相互叠加。理解这些机制是开发抗病毒药物和疫苗的基础。");
+}
+
+// === Slide 15: RECAP — 总结 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s, YT.purple);
+  s.addText("总结", {
+    x: 0.8, y: 0.3, w: 8.4, h: 0.8,
+    fontSize: 36, bold: true, color: YT.white, fontFace: FONT,
+  });
+  s.addText([
+    { text: "01  ", options: { bold: true, color: YT.accent, fontSize: 24 } },
+    { text: "病毒本身不致病 — 必须进入宿主细胞\n\n", options: { color: YT.lightGray, fontSize: 20 } },
+    { text: "02  ", options: { bold: true, color: YT.warm, fontSize: 24 } },
+    { text: "被动入侵 — 表面蛋白结合宿主受体，全程无需主动动作\n\n", options: { color: YT.lightGray, fontSize: 20 } },
+    { text: "03  ", options: { bold: true, color: YT.purple, fontSize: 24 } },
+    { text: "三大致病机制 — 直接破坏 / 过度防御 / 免疫攻击", options: { color: YT.lightGray, fontSize: 20 } },
+  ], {
+    x: 1.2, y: 1.5, w: 7.8, h: 3.5,
+    valign: "top", lineSpacing: 36, fontFace: FONT,
+  });
+  addProgress(s, 14);
+  s.addNotes("回顾本讲三大要点：1) 病毒本身不致病，必须进入宿主细胞；2) 病毒靠表面蛋白结合宿主受体完成被动入侵；3) 三大致病机制——直接破坏、过度防御、免疫攻击。搞清楚了病毒如何导致疾病，下一讲我们来说说病毒是如何传播的。");
+}
+
+// === Slide 16: NEXT — 下集预告 ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.warm };
+  // Subtle geometric decoration
+  s.addShape(pres.shapes.OVAL, {
+    x: 8.0, y: -0.5, w: 3.0, h: 3.0,
+    fill: { color: YT.white, transparency: 93 },
+  });
+  s.addText("下一讲", {
+    x: 1.0, y: 1.2, w: 8.0, h: 0.7,
+    fontSize: 22, color: YT.white, align: "center",
+    fontFace: FONT,
+  });
+  s.addText("病毒如何传播？", {
+    x: 0.5, y: 2.2, w: 9.0, h: 1.2,
+    fontSize: 40, bold: true, color: YT.white, align: "center",
+    fontFace: FONT,
+  });
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 3.5, y: 3.5, w: 3.0, h: 0.03, fill: { color: YT.white, transparency: 50 },
+  });
+  s.addText("⏱ 第4讲 — 即将更新", {
+    x: 1.0, y: 3.8, w: 8.0, h: 0.5,
+    fontSize: 17, color: YT.white, align: "center",
+    fontFace: FONT,
+  });
+  s.addNotes("预告下一讲内容：病毒是如何传播的？为什么病毒会导致那么多可怕的传染病，威胁我们的健康和生命。");
+}
+
+// === Slide 17: CLOSING ===
+{
+  const s = pres.addSlide();
+  s.background = { color: YT.dark };
+  leftAccent(s);
+  s.addText("谢谢", {
+    x: 1.0, y: 2.0, w: 8.0, h: 1.2,
+    fontSize: 52, bold: true, color: YT.white, align: "center",
+    fontFace: FONT,
+  });
+  s.addText("Q & A", {
+    x: 1.0, y: 3.3, w: 8.0, h: 0.6,
+    fontSize: 28, color: YT.accent, align: "center",
+    fontFace: FONT,
+  });
+  s.addShape(pres.shapes.RECTANGLE, {
+    x: 0, y: 5.55, w: 10, h: 0.06, fill: { color: YT.accent },
+  });
+}
+
+// === Save ===
+await pres.writeFile({ fileName: "/workspace/data/xieming/other-codes/srt2ppt/examples/第3集-slides.pptx" });
+console.log("PPTX created: 第3集-slides.pptx");
