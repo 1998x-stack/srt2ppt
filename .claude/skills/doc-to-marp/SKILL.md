@@ -2,79 +2,263 @@
 name: doc-to-marp
 description: >
   Turn documents (SRT subtitle files, Markdown articles, plain text) into
-  Marp presentation slide decks. Use this skill whenever the user wants to
-  convert a document, article, transcript, SRT file, or lecture notes into
-  a Marp Markdown presentation — even if they just say "turn this into
-  slides" or "make a PPT from this doc" without specifying the format.
-  Do NOT use this skill if the user specifically asks for PptxGenJS or
-  python-pptx output.
+  Marp presentation slide decks AND rendered PPTX/HTML/PDF. Use this skill
+  whenever the user wants to convert a document, article, transcript, SRT
+  file, or lecture notes into slides — even if they just say "turn this into
+  slides" or "make a PPT from this doc." Outputs .md, plan.json, and .pptx.
+  Do NOT use this skill if the user specifically asks for PptxGenJS output.
 ---
 
-# doc-to-marp: Document → Marp Slide Deck
+# doc-to-marp: Document → YouTube-Style Slide Deck + PPTX
 
-Convert documents (SRT, Markdown, text) into a professional Marp Markdown
-presentation. No web search — work entirely from the input document.
+Convert documents into visually striking, YouTube-style Marp presentations
+with neon-dark theme, chapter markers, timeline mapping, and rendered PPTX.
+No web search — work entirely from the input document.
 
 ## Bundled Resources
 
 | Resource | When to Use |
 |----------|-------------|
-| `scripts/parse_srt.py` | Run this FIRST for any .srt input — extracts clean text |
-| `references/slide-patterns.md` | Read when you need slide layout templates and patterns |
+| `scripts/parse_srt.py` | Run FIRST for any .srt input — extracts clean text with timestamps |
+| `scripts/parse_srt.py --json` | Run when you need timing data for plan.json |
+| `references/slide-patterns.md` | Layout templates for each slide type |
+| `references/youtube-theme.md` | **Read this always** — YouTube dark/neon theme, CSS, color palette |
 
-## Pipeline
+## Pipeline (Each step produces an artifact)
 
 ```
 Input Document (.srt / .md / .txt)
         │
         ▼
 ① PARSE & CLEAN
-   - If SRT: strip indices, timestamps, TurboScribe watermarks
-   - Merge short fragments into coherent paragraphs
-   - Preserve original language and terminology
+   - SRT content: `python3 scripts/parse_srt.py <input> -o /tmp/parsed.txt`
+   - SRT timing: `python3 scripts/parse_srt.py <input> --no-merge --json -o /tmp/timing.json`
+   - MD: read directly
         │
         ▼
-② STRUCTURE ANALYSIS
-   - Identify the document's narrative arc
-   - Find natural section breaks (topics, transitions, conclusions)
-   - Extract key facts, definitions, examples, data
+② STRUCTURE ANALYSIS → /tmp/outline.json
+   - Identify narrative arc, section breaks, key concepts
+   - Map content to SRT timestamps (start/end per slide)
+   - Assign slide types: HOOK | CHAPTER | CONTENT | BIG_NUMBER | QUOTE | VS | SUMMARY | NEXT
         │
         ▼
-③ SLIDE DESIGN
-   - Plan slide sequence: Cover → Sections → Key Points → Summary
-   - Assign slide types: title, content, quote, data, comparison
-   - Keep 3-5 bullet points per slide max
-   - Each slide should have ONE clear message
-   - Draft speaker notes FOR EVERY SLIDE as you design it
+③ SLIDE DESIGN → /tmp/slides-plan.json
+   - Decide exact slide count and sequence
+   - Assign timestamps (from SRT JSON) to each slide
+   - Read `references/youtube-theme.md` for theme setup
+   - Read `references/slide-patterns.md` for layout code
         │
         ▼
-④ MARP GENERATION
-   - Write front-matter (marp:true, theme, size, paginate, etc.)
-   - Use --- as slide separator (blank line before it!)
-   - Apply directives for visual variety
-   - Append speaker notes to EVERY content slide
+④ MARP GENERATION → <input-name>-marp.md
+   - Front-matter with YouTube dark theme + custom CSS
+   - --- separators with blank lines
+   - Chapter markers with ⏱ timestamps
+   - Speaker notes on EVERY content slide
         │
         ▼
-⑤ OUTPUT .md FILE
-   - Save to same directory as input
-   - Name: <input-name>-marp.md
+⑤ PLAN GENERATION → <input-name>-plan.json
+   - Slide-by-slide timeline mapping
+   - See Plan JSON Schema section below
+        │
+        ▼
+⑥ RENDER → <input-name>.pptx + .html
+   - Run: npx marp <input-name>-marp.md --pptx -o <input-name>.pptx
+   - Run: npx marp <input-name>-marp.md -o <input-name>.html
+   - Marp CLI is already installed in the project
+```
+
+## Step 0: Extract Timestamps for SRT
+
+When input is .srt, get timing data FIRST:
+
+```bash
+# For content extraction (merged paragraphs):
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt -o /tmp/parsed.txt
+
+# For timeline mapping (individual entries with timestamps):
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt --no-merge --json -o /tmp/timing.json
+```
+
+The `--no-merge --json` output gives you precise per-subtitle timestamps:
+`[{"paragraph": N, "time": "00:00:06,490 --> 00:00:08,330", "text": "..."}]`
+Use these to map each slide to its video segment in plan.json.
+
+## Step ②: Outline Structure (YouTube Style)
+
+YouTube presentation flow:
+
+```
+HOOK (5-10s)     → Grab attention, big statement
+INTRO (30-60s)    → What we're covering, why it matters
+CHAPTER 1          → Main point 1 with ⏱ marker
+  - Content slides  (3-5 bullets each)
+  - Deep dive       (BIG_NUMBER or QUOTE)
+CHAPTER 2          → Main point 2
+  - Content slides
+  - VS comparison
+CHAPTER 3          → Main point 3
+  - Content slides
+RECAP (30s)        → 3 key takeaways
+NEXT (15s)         → Tease next episode
+```
+
+## Plan JSON Schema
+
+Generate `<input-name>-plan.json` with this exact structure:
+
+```json
+{
+  "title": "演示文稿标题",
+  "source": "examples/第2集.srt",
+  "total_slides": 18,
+  "total_duration": "00:12:30",
+  "theme": "youtube-dark",
+  "slides": [
+    {
+      "index": 1,
+      "type": "HOOK",
+      "title": "病毒：完美寄生者",
+      "start": "00:00:06,490",
+      "end": "00:00:15,500",
+      "duration_sec": 9.0,
+      "chapter": null,
+      "speaker_notes": "开场抓住注意力..."
+    },
+    {
+      "index": 2,
+      "type": "INTRO",
+      "title": "今天我们要聊什么",
+      "start": "00:00:15,500",
+      "end": "00:00:50,000",
+      "duration_sec": 34.5,
+      "chapter": null,
+      "speaker_notes": "介绍三大特性..."
+    },
+    {
+      "index": 3,
+      "type": "CHAPTER",
+      "title": "第一章：完美寄生者",
+      "start": "00:00:50,000",
+      "end": "00:00:55,000",
+      "duration_sec": 5.0,
+      "chapter": 1,
+      "speaker_notes": "过渡到第一个主题..."
+    }
+  ]
+}
+```
+
+Field rules:
+- `type`: HOOK | INTRO | CHAPTER | CONTENT | BIG_NUMBER | QUOTE | VS | DATA | RECAP | NEXT | CLOSING
+- `start/end`: SRT timestamp format `HH:MM:SS,mmm`
+- `duration_sec`: float, computed from timestamps
+- `chapter`: null for non-chapter slides, integer 1-9 for chapter markers
+- `speaker_notes`: one sentence summarizing what presenter says
+
+## YouTube Dark Theme
+
+**Always use `references/youtube-theme.md`** for the complete theme. Quick setup:
+
+```yaml
+---
+marp: true
+theme: uncover
+size: 16:9
+paginate: false
+style: |
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+  :root {
+    --dark: #0a0a0a; --neon-red: #ff2d55; --neon-cyan: #00d4ff;
+    --neon-yellow: #ffcc00; --white: #ffffff; --gray: #888888;
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+  }
+  section { background-color: var(--dark); color: var(--white); padding: 60px 80px; }
+  h1 { font-size: 3.5em; font-weight: 900; }
+  h2 { font-size: 2.2em; font-weight: 700; color: var(--neon-cyan); }
+  strong { color: var(--neon-red); }
+  em { color: var(--neon-yellow); font-style: normal; }
+  ul { list-style: none; padding-left: 0; }
+  ul li::before { content: "▸"; color: var(--neon-red); margin-right: 0.5em; }
+  li { font-size: 1.3em; margin: 0.4em 0; }
+  section::after {
+    content: ''; position: absolute; bottom: 0; left: 0; height: 4px;
+    background: linear-gradient(90deg, var(--neon-red), var(--neon-cyan));
+  }
+---
+```
+
+Color usage:
+- Background: `#0a0a0a` (near-black)
+- Headings: `#ffffff` (white h1), `#00d4ff` (cyan h2)
+- Emphasis: `#ff2d55` (neon red) for **bold**, ▸ bullets
+- Highlights: `#ffcc00` (neon yellow) for *italic*
+- Chapter backgrounds: `#bf5af2` (purple), `#ff2d55` (red)
+
+## YouTube Slide Patterns (Quick Reference)
+
+Full details in `references/youtube-theme.md`.
+
+### HOOK — First slide, grab attention
+```markdown
+<!-- _class: lead -->
+# <!--fit--> [BOLD STATEMENT]
+```
+
+### CHAPTER — Section divider with timestamp
+```markdown
+<!-- _class: lead -->
+<!-- _backgroundColor: #bf5af2 -->
+CHAPTER 01
+# [TITLE]
+⏱ `00:50` – `04:30`
+```
+
+### BIG NUMBER — Emphasize key data
+```markdown
+<!-- _class: lead -->
+# **100 nm**
+## 病毒颗粒直径
+```
+
+### VS — Side-by-side comparison
+```markdown
+# 🅰️ VS 🅱️
+| | A | B |
+|---|:---:|:---:|
+| 特征1 | ✅ | ❌ |
+```
+
+### RECAP — 3 key takeaways
+```markdown
+<!-- _class: lead -->
+# 总结
+## **01** 要点一
+## **02** 要点二
+## **03** 要点三
+```
+
+### NEXT — Tease next episode
+```markdown
+<!-- _class: lead -->
+<!-- _backgroundColor: #ff2d55 -->
+# <!--fit--> 下一讲
+## [NEXT TOPIC]
+⏱ 即将更新
 ```
 
 ## SRT Parsing Rules
 
-**For .srt files, run the bundled script FIRST:**
+**Always run the script first:**
 
 ```bash
-python3 .claude/skills/doc-to-marp/scripts/parse_srt.py <input.srt> -o /tmp/parsed.txt
+# For content extraction:
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt -o /tmp/parsed.txt
+
+# For timeline mapping (plan.json):
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt --json -o /tmp/timing.json
 ```
 
-This produces clean, merged text. Read `/tmp/parsed.txt` and use it as your source content.
-
-The script handles: index removal, timestamp stripping, TurboScribe watermark removal,
-and intelligent paragraph merging (entries within 1500ms gap are joined).
-
-For manual parsing or non-SRT files, follow these rules:
-
+Manual parsing rules (for non-SRT):
 ```
 Raw SRT:
 1
@@ -85,158 +269,59 @@ Raw SRT:
 您好，欢迎来到病毒科学课，我是王丽明，
 
 Rules:
-- Remove all index numbers (lines that are just digits)
-- Remove all timestamp lines (containing "-->")
-- Remove "Transcribed by TurboScribe..." watermark
+- Remove index numbers, timestamp lines, TurboScribe watermark
 - Join fragmented lines into complete sentences
-- Use punctuation and natural pauses to decide paragraph breaks
-```
-
-## Slide Design Principles
-
-### Content-to-Slide Mapping
-
-| Content Type | Slide Layout | Marp Technique |
-|---|---|---|
-| Lecture intro / speaker intro | Title slide | `<!-- _class: lead -->` |
-| Key concept / definition | Big text | `# <!--fit--> DEFINITION` |
-| 3-5 related facts | Bullet list | Standard `- ` items |
-| A quote or key insight | Quote slide | `<!-- _class: lead -->` + `>` |
-| Two contrasting ideas | Two-column | Table hack or `<!-- class: columns -->` |
-| Process / steps | Numbered list | `1. Step one` etc. |
-| Data / statistics | Highlight numbers | Big font, `**bold**` numbers |
-| Section transition | Section header | `<!-- _class: lead -->` + `## Section` |
-| Summary / takeaways | Bullet review | `- ` with key points |
-
-### Slide Count Guidelines
-
-- 30 min lecture transcript → 12-18 slides
-- 5 min short content → 5-8 slides
-- Each slide ≈ 1-2 minutes of speaking
-
-## Marp Template
-
-Always start with this structure:
-
-```markdown
----
-marp: true
-theme: gaia
-size: 16:9
-paginate: true
-headingDivider: 0
----
-
-<!-- _class: lead -->
-# [TITLE]
-## [SUBTITLE / CONTEXT]
-
----
-
-<!-- _class: lead -->
-## [FIRST SECTION NAME]
-
----
-
-## [SLIDE TITLE]
-- Point 1
-- Point 2
-- Point 3
-
-<!-- Speaker notes:
-Additional context the presenter should mention.
-Explain the reasoning behind each point.
--->
-
----
-
-# <!--fit--> [KEY CONCEPT / DEFINITION]
-
-<!-- Speaker notes:
-Elaborate on this concept. Give a concrete example or analogy.
--->
-
----
-
-## 总结
-- Key takeaway 1
-- Key takeaway 2
-- Key takeaway 3
-
-<!-- Speaker notes:
-Recap the main themes. Preview what comes next.
--->
-
----
-
-<!-- _class: lead -->
-# 谢谢
-## Q & A
-```
-
-## Directive Cheatsheet
-
-Refer to `docs/03-directives.md` for the full reference. Most-used directives:
-
-```markdown
-<!-- Global (in front matter) -->
-theme: gaia | default | uncover
-size: 16:9 | 4:3
-paginate: true
-style: |          ← custom CSS injection
-
-<!-- Local (applies to following slides) -->
-<!-- backgroundColor: #hex -->
-<!-- color: #hex -->
-<!-- class: lead -->    ← centered layout
-
-<!-- Scoped (current slide only, _ prefix) -->
-<!-- _backgroundColor: #hex -->
-<!-- _backgroundImage: url(...) -->
-<!-- _class: lead -->
 ```
 
 ## Speaker Notes (MANDATORY)
 
-**Every content slide MUST have speaker notes.** This is non-negotiable.
-Notes help presenters deliver the talk without memorizing — they carry the
-full context from the original document that wouldn't fit on the slide.
-
-Use this format immediately before the `---` separator:
+**Every content slide MUST have speaker notes.** Format:
 
 ```markdown
 <!-- Speaker notes:
 Context, examples, and talking points the presenter should mention.
-Include key facts and transitions from the source document.
 -->
 ```
 
-What to include:
-- **Context**: Background the presenter should know beyond slide text
-- **Transitions**: How this slide connects to the next one
-- **Key facts**: Important details from the source that didn't fit on the slide
-- **Examples**: Concrete illustrations the presenter can mention orally
-
-Only exceptions: the title slide and the closing "谢谢" slide may skip notes.
+What to include: context, transitions, key facts from source, examples.
+Only exceptions: HOOK and NEXT slides may skip.
 
 ## Quality Checklist
 
-Before outputting, verify:
-- [ ] Front matter has `marp: true`
-- [ ] Each `---` separator has blank line before it
-- [ ] No slide has more than 7 lines of text
-- [ ] **Every content slide has speaker notes** (only title + closing may skip)
-- [ ] At least one visual variety directive used (class, background)
-- [ ] Title slide and closing slide present
-- [ ] Original SRT timestamps and indices fully removed
-- [ ] Language of output matches language of input
+Before rendering, verify:
+- [ ] YouTube dark theme in front-matter (--dark: #0a0a0a, neon colors)
+- [ ] `marp: true` set
+- [ ] Each `---` has blank line before it
+- [ ] **Every content slide has speaker notes**
+- [ ] At least one CHAPTER marker with ⏱ timestamp
+- [ ] HOOK opening slide present
+- [ ] RECAP + NEXT closing slides present
+- [ ] No SRT timestamps/watermarks in output
+- [ ] plan.json written with all slides mapped to timestamps
+- [ ] PPTX rendered: `npx marp <file> --pptx`
+
+## After Generating .md
+
+Always run these commands to produce final outputs:
+
+```bash
+# Render PPTX (editable PowerPoint)
+npx marp <input-name>-marp.md --pptx -o <input-name>.pptx
+
+# Render HTML (for web preview)
+npx marp <input-name>-marp.md -o <input-name>.html
+
+# Optional: Render PDF
+npx marp <input-name>-marp.md --pdf -o <input-name>.pdf
+```
 
 ## Anti-Patterns
 
 - Do NOT do web searches — work from the document content
 - Do NOT invent facts not in the source document
-- Do NOT use `headingDivider` unless the document naturally maps to heading levels
-- Do NOT put more than one concept per slide
-- Do NOT skip the title slide or closing slide
-- Do NOT forget blank lines before `---`
-- Do NOT omit speaker notes — every content slide needs them
+- Do NOT skip the YouTube dark theme — always use it
+- Do NOT forget the plan.json output
+- Do NOT skip rendering commands — always produce .pptx
+- Do NOT use light themes (gaia/default) — YouTube style is dark
+- Do NOT omit speaker notes
+- Do NOT forget blank lines before `---
