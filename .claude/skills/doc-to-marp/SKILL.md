@@ -15,6 +15,13 @@ description: >
 Convert documents (SRT, Markdown, text) into a professional Marp Markdown
 presentation. No web search — work entirely from the input document.
 
+## Bundled Resources
+
+| Resource | When to Use |
+|----------|-------------|
+| `scripts/parse_srt.py` | Run this FIRST for any .srt input — extracts clean text |
+| `references/slide-patterns.md` | Read when you need slide layout templates and patterns |
+
 ## Pipeline
 
 ```
@@ -54,6 +61,19 @@ Input Document (.srt / .md / .txt)
 ```
 
 ## SRT Parsing Rules
+
+**For .srt files, run the bundled script FIRST:**
+
+```bash
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py <input.srt> -o /tmp/parsed.txt
+```
+
+This produces clean, merged text. Read `/tmp/parsed.txt` and use it as your source content.
+
+The script handles: index removal, timestamp stripping, TurboScribe watermark removal,
+and intelligent paragraph merging (entries within 1500ms gap are joined).
+
+For manual parsing or non-SRT files, follow these rules:
 
 ```
 Raw SRT:

@@ -15,6 +15,13 @@ description: >
 Convert documents (SRT, Markdown, text) into an editable PowerPoint .pptx
 file using PptxGenJS. No web search — work entirely from the input document.
 
+## Bundled Resources
+
+| Resource | When to Use |
+|----------|-------------|
+| `scripts/parse_srt.py` | Run this FIRST for any .srt input — extracts clean text |
+| `references/layout-code-blocks.md` | **Read this** before generating code — complete copy-paste templates for every slide type. Load it at step ③. |
+
 ## Pipeline
 
 ```
@@ -36,14 +43,15 @@ Input Document (.srt / .md / .txt)
 ③ LAYOUT ASSIGNMENT
    - Plan slide sequence: Cover → Sections → Content → Summary
    - Assign a layout type to each slide:
-     TITLE | SECTION | CONTENT | BIG_WORD | QUOTE | DATA | SUMMARY
+     TITLE | SECTION | CONTENT | BIG_WORD | QUOTE | DATA | TABLE | SUMMARY | CLOSING
    - Keep 3-5 bullet points per content slide
+   - **Read `references/layout-code-blocks.md` now** — it has exact code templates
         │
         ▼
 ④ PPTXGENJS CODE GENERATION
    - Write a runnable .mjs script using PptxGenJS
-   - Apply layout-specific styling per slide type
-   - Use Chinese-friendly fonts (Microsoft YaHei)
+   - Copy code blocks directly from `references/layout-code-blocks.md`
+   - Use the C color palette defined in the reference
    - Add speaker notes for presenter context
         │
         ▼
@@ -54,6 +62,18 @@ Input Document (.srt / .md / .txt)
 ```
 
 ## SRT Parsing Rules
+
+**For .srt files, run the bundled script FIRST:**
+
+```bash
+python3 .claude/skills/doc-to-pptxgenjs/scripts/parse_srt.py <input.srt> -o /tmp/parsed.txt
+```
+
+This produces clean, merged text. Read `/tmp/parsed.txt` and use it as your source content.
+The script handles: index removal, timestamp stripping, TurboScribe watermark removal,
+and intelligent paragraph merging.
+
+For manual parsing, follow these rules:
 
 ```
 Raw SRT:
@@ -74,134 +94,27 @@ Rules:
 
 ## Slide Layout System
 
-Each slide gets a `type` that determines its PptxGenJS code template:
+Each slide gets a `type`. The complete, ready-to-copy code for every layout
+is in **`references/layout-code-blocks.md`** — read that file, don't write
+from scratch. Below is a quick overview of available types:
 
-### TITLE (封面)
-```javascript
-slide.background = { color: "1a1a2e" };
-slide.addText("标题", {
-  x: 1.0, y: 1.5, w: 8.0, h: 1.5,
-  fontSize: 40, bold: true, color: "FFFFFF", align: "center",
-  fontFace: "Microsoft YaHei",
-});
-slide.addText("副标题 · 演讲者", {
-  x: 1.0, y: 3.2, w: 8.0, h: 0.6,
-  fontSize: 18, color: "AAAAAA", align: "center",
-  fontFace: "Microsoft YaHei",
-});
-```
+### Available Layout Types
 
-### SECTION (章节过渡)
-```javascript
-slide.background = { color: topicColor };
-slide.addText("章节标题", {
-  x: 1.0, y: 2.0, w: 8.0, h: 1.5,
-  fontSize: 36, bold: true, color: "FFFFFF", align: "center",
-  fontFace: "Microsoft YaHei",
-});
-```
+| Type | Description | Code in Reference |
+|------|-------------|:---:|
+| TITLE | Dark background, title + subtitle + speaker | `layout-code-blocks.md#title` |
+| SECTION | Colored background, section name | `layout-code-blocks.md#section` |
+| CONTENT | White bg, accent bar, heading, bullet list | `layout-code-blocks.md#content` |
+| BIG_WORD | Light bg, centered definition text | `layout-code-blocks.md#big_word` |
+| QUOTE | Accent bg, italic quote + attribution | `layout-code-blocks.md#quote` |
+| DATA | Metric cards with rounded rectangles | `layout-code-blocks.md#data` |
+| TABLE | Structured table with header row | `layout-code-blocks.md#table` |
+| SUMMARY | Dark bg, numbered takeaways | `layout-code-blocks.md#summary` |
+| CLOSING | Dark bg, "谢谢" + Q&A | `layout-code-blocks.md#closing` |
 
-### CONTENT (内容页)
-```javascript
-// Top accent bar
-slide.addShape(pres.shapes.RECTANGLE, {
-  x: 0, y: 0, w: 10, h: 0.06, fill: { color: accentColor },
-});
-// Title
-slide.addText("页面标题", {
-  x: 0.8, y: 0.3, w: 8.4, h: 0.8,
-  fontSize: 28, bold: true, color: "1a1a2e",
-  fontFace: "Microsoft YaHei",
-});
-// Bullet points
-slide.addText([
-  { text: "要点一：", options: { bold: true, color: accentColor, fontSize: 20 } },
-  { text: "详细说明内容\n", options: { fontSize: 18, color: "333333" } },
-  { text: "要点二：", options: { bold: true, color: accentColor, fontSize: 20 } },
-  { text: "详细说明内容\n", options: { fontSize: 18, color: "333333" } },
-], {
-  x: 0.8, y: 1.5, w: 8.4, h: 3.5,
-  valign: "top", lineSpacing: 28,
-  fontFace: "Microsoft YaHei",
-});
-```
-
-### BIG_WORD (大字概念)
-```javascript
-slide.background = { color: "f8f8f8" };
-slide.addText("核心概念定义", {
-  x: 1.0, y: 1.5, w: 8.0, h: 2.5,
-  fontSize: 32, bold: true, color: accentColor, align: "center",
-  valign: "middle",
-  fontFace: "Microsoft YaHei",
-});
-```
-
-### QUOTE (引用/金句)
-```javascript
-slide.background = { color: accentColor };
-slide.addText("「关键引用或金句」", {
-  x: 1.5, y: 1.5, w: 7.0, h: 2.5,
-  fontSize: 28, italic: true, color: "FFFFFF", align: "center",
-  valign: "middle",
-  fontFace: "Microsoft YaHei",
-});
-slide.addText("—— 出处说明", {
-  x: 1.5, y: 4.0, w: 7.0, h: 0.5,
-  fontSize: 14, color: "DDDDDD", align: "right",
-  fontFace: "Microsoft YaHei",
-});
-```
-
-### DATA (数据/统计)
-```javascript
-// Three metric cards horizontally
-const metrics = [
-  { value: "100nm", label: "病毒大小" },
-  { value: "DNA/RNA", label: "遗传物质" },
-  { value: "蛋白质", label: "外壳成分" },
-];
-metrics.forEach((m, i) => {
-  const cx = 0.8 + i * 3.0;
-  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-    x: cx, y: 1.5, w: 2.5, h: 1.8,
-    fill: { color: accentColor, transparency: 90 },
-    rectRadius: 0.15,
-  });
-  slide.addText(m.value, {
-    x: cx, y: 1.6, w: 2.5, h: 0.9,
-    fontSize: 28, bold: true, color: accentColor, align: "center",
-    fontFace: "Microsoft YaHei",
-  });
-  slide.addText(m.label, {
-    x: cx, y: 2.5, w: 2.5, h: 0.5,
-    fontSize: 14, color: "666666", align: "center",
-    fontFace: "Microsoft YaHei",
-  });
-});
-```
-
-### SUMMARY (总结)
-```javascript
-slide.background = { color: "1a1a2e" };
-slide.addText("总结", {
-  x: 0.8, y: 0.5, w: 8.4, h: 0.8,
-  fontSize: 32, bold: true, color: "FFFFFF",
-  fontFace: "Microsoft YaHei",
-});
-slide.addText([
-  { text: "1. ", options: { bold: true, color: accentColor, fontSize: 22 } },
-  { text: "要点一\n\n", options: { color: "CCCCCC", fontSize: 18 } },
-  { text: "2. ", options: { bold: true, color: accentColor, fontSize: 22 } },
-  { text: "要点二\n\n", options: { color: "CCCCCC", fontSize: 18 } },
-  { text: "3. ", options: { bold: true, color: accentColor, fontSize: 22 } },
-  { text: "要点三", options: { color: "CCCCCC", fontSize: 18 } },
-], {
-  x: 0.8, y: 1.5, w: 8.4, h: 3.5,
-  valign: "top", lineSpacing: 36,
-  fontFace: "Microsoft YaHei",
-});
-```
+**Always read `references/layout-code-blocks.md` before writing code.**
+Copy the templates directly — they include the C color palette, correct
+coordinates, fontFace settings, and addNotes patterns.
 
 ## Complete Script Template
 
