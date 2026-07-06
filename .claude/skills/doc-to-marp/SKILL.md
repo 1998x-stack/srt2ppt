@@ -38,13 +38,14 @@ Input Document (.srt / .md / .txt)
    - Assign slide types: title, content, quote, data, comparison
    - Keep 3-5 bullet points per slide max
    - Each slide should have ONE clear message
+   - Draft speaker notes FOR EVERY SLIDE as you design it
         │
         ▼
 ④ MARP GENERATION
    - Write front-matter (marp:true, theme, size, paginate, etc.)
    - Use --- as slide separator (blank line before it!)
    - Apply directives for visual variety
-   - Add speaker notes for presenter context
+   - Append speaker notes to EVERY content slide
         │
         ▼
 ⑤ OUTPUT .md FILE
@@ -124,11 +125,16 @@ headingDivider: 0
 
 <!-- Speaker notes:
 Additional context the presenter should mention.
+Explain the reasoning behind each point.
 -->
 
 ---
 
 # <!--fit--> [KEY CONCEPT / DEFINITION]
+
+<!-- Speaker notes:
+Elaborate on this concept. Give a concrete example or analogy.
+-->
 
 ---
 
@@ -136,6 +142,10 @@ Additional context the presenter should mention.
 - Key takeaway 1
 - Key takeaway 2
 - Key takeaway 3
+
+<!-- Speaker notes:
+Recap the main themes. Preview what comes next.
+-->
 
 ---
 
@@ -166,13 +176,36 @@ style: |          ← custom CSS injection
 <!-- _class: lead -->
 ```
 
+## Speaker Notes (MANDATORY)
+
+**Every content slide MUST have speaker notes.** This is non-negotiable.
+Notes help presenters deliver the talk without memorizing — they carry the
+full context from the original document that wouldn't fit on the slide.
+
+Use this format immediately before the `---` separator:
+
+```markdown
+<!-- Speaker notes:
+Context, examples, and talking points the presenter should mention.
+Include key facts and transitions from the source document.
+-->
+```
+
+What to include:
+- **Context**: Background the presenter should know beyond slide text
+- **Transitions**: How this slide connects to the next one
+- **Key facts**: Important details from the source that didn't fit on the slide
+- **Examples**: Concrete illustrations the presenter can mention orally
+
+Only exceptions: the title slide and the closing "谢谢" slide may skip notes.
+
 ## Quality Checklist
 
 Before outputting, verify:
 - [ ] Front matter has `marp: true`
 - [ ] Each `---` separator has blank line before it
 - [ ] No slide has more than 7 lines of text
-- [ ] Speaker notes added for slides that need context
+- [ ] **Every content slide has speaker notes** (only title + closing may skip)
 - [ ] At least one visual variety directive used (class, background)
 - [ ] Title slide and closing slide present
 - [ ] Original SRT timestamps and indices fully removed
@@ -186,3 +219,4 @@ Before outputting, verify:
 - Do NOT put more than one concept per slide
 - Do NOT skip the title slide or closing slide
 - Do NOT forget blank lines before `---`
+- Do NOT omit speaker notes — every content slide needs them
