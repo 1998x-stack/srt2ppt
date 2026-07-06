@@ -31,7 +31,7 @@ Input Document (.srt / .md / .txt)
         ▼
 ① PARSE & CLEAN
    - SRT: `python3 scripts/parse_srt.py <input> -o /tmp/parsed.txt`
-   - SRT timing: `python3 scripts/parse_srt.py <input> --json -o /tmp/timing.json`
+   - SRT timing: `python3 scripts/parse_srt.py <input> --no-merge --json -o /tmp/timing.json`
    - MD: read directly
         │
         ▼
@@ -58,9 +58,12 @@ Input Document (.srt / .md / .txt)
    - Slide-by-slide timeline mapping (see schema below)
         │
         ▼
-⑥ EXECUTE → <input-name>-slides.pptx
-   - Run: node <input-name>-slides.mjs
-   - Verify PPTX is valid OOXML
+⑥ EXECUTE + VERIFY → <input-name>-slides.pptx
+   - Validate JSON: `python3 -m json.tool <input-name>-plan.json > /dev/null`
+   - Run: `node <input-name>-slides.mjs`
+   - If node fails: check error, fix the .mjs, re-run
+   - Verify PPTX: `file <input-name>-slides.pptx | grep -q 'Zip archive'`
+   - Report: `ls -lh <input-name>-slides.pptx <input-name>-plan.json <input-name>-slides.mjs`
 ```
 
 ## YouTube Color Palette (Always Use)

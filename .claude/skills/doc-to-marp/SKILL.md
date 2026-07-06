@@ -122,6 +122,7 @@ Generate `<input-name>-plan.json` with this exact structure:
       "end": "00:00:15,500",
       "duration_sec": 9.0,
       "chapter": null,
+      "layout": "TITLE",
       "speaker_notes": "开场抓住注意力..."
     },
     {
@@ -132,6 +133,7 @@ Generate `<input-name>-plan.json` with this exact structure:
       "end": "00:00:50,000",
       "duration_sec": 34.5,
       "chapter": null,
+      "layout": "CONTENT",
       "speaker_notes": "介绍三大特性..."
     },
     {
@@ -142,6 +144,7 @@ Generate `<input-name>-plan.json` with this exact structure:
       "end": "00:00:55,000",
       "duration_sec": 5.0,
       "chapter": 1,
+      "layout": "CHAPTER",
       "speaker_notes": "过渡到第一个主题..."
     }
   ]
@@ -150,8 +153,9 @@ Generate `<input-name>-plan.json` with this exact structure:
 
 Field rules:
 - `type`: HOOK | INTRO | CHAPTER | CONTENT | BIG_NUMBER | QUOTE | VS | DATA | RECAP | NEXT | CLOSING
+- `layout`: Marp layout name (TITLE | CHAPTER | CONTENT | BIG_WORD | QUOTE | VS | DATA | RECAP | NEXT | CLOSING)
 - `start/end`: SRT timestamp format `HH:MM:SS,mmm`
-- `duration_sec`: float, computed from timestamps
+- `duration_sec`: float, computed from (end - start)
 - `chapter`: null for non-chapter slides, integer 1-9 for chapter markers
 - `speaker_notes`: one sentence summarizing what presenter says
 
@@ -255,7 +259,7 @@ CHAPTER 01
 python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt -o /tmp/parsed.txt
 
 # For timeline mapping (plan.json):
-python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt --json -o /tmp/timing.json
+python3 .claude/skills/doc-to-marp/scripts/parse_srt.py examples/第2集.srt --no-merge --json -o /tmp/timing.json
 ```
 
 Manual parsing rules (for non-SRT):
@@ -313,6 +317,18 @@ npx marp <input-name>-marp.md -o <input-name>.html
 
 # Optional: Render PDF
 npx marp <input-name>-marp.md --pdf -o <input-name>.pdf
+```
+
+After rendering, verify:
+```bash
+# Check PPTX is valid (should be a ZIP/OOXML file)
+file <input-name>.pptx | grep -q 'Zip archive' && echo "✅ PPTX OK" || echo "❌ PPTX FAILED"
+
+# Validate plan.json
+python3 -m json.tool <input-name>-plan.json > /dev/null && echo "✅ plan.json valid" || echo "❌ plan.json invalid"
+
+# Verify all artifacts exist
+ls -lh <input-name>-marp.md <input-name>-plan.json <input-name>.pptx <input-name>.html
 ```
 
 ## Anti-Patterns
